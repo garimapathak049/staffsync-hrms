@@ -1,0 +1,14 @@
+const r = require('express').Router();
+const { body } = require('express-validator');
+const c = require('../controllers/employeeController');
+const validate = require('../middleware/validate');
+const { authenticate, authorize } = require('../middleware/auth');
+r.use(authenticate);
+r.get('/team', authorize('MANAGER'), c.team);
+r.put('/me', c.updateMe);
+r.get('/', authorize('HR'), c.list);
+r.post('/', authorize('HR'), [body('name').trim().notEmpty(), body('email').isEmail().normalizeEmail(), body('password').isLength({ min: 8 }), body('role').isIn(['MANAGER', 'EMPLOYEE'])], validate, c.create);
+r.get('/:id', c.get);
+r.put('/:id', authorize('HR'), c.update);
+r.patch('/:id/status', authorize('HR'), [body('status').isIn(['ACTIVE', 'INACTIVE'])], validate, c.setStatus);
+module.exports = r;

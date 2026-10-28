@@ -1,0 +1,13 @@
+const r = require('express').Router();
+const { body } = require('express-validator');
+const c = require('../controllers/attendanceController');
+const validate = require('../middleware/validate');
+const { authenticate, authorize } = require('../middleware/auth');
+r.use(authenticate);
+r.post('/check-in', authorize('EMPLOYEE', 'MANAGER'), c.checkIn);
+r.post('/check-out', authorize('EMPLOYEE', 'MANAGER'), c.checkOut);
+r.get('/me', c.me);
+r.get('/team', authorize('MANAGER'), c.team);
+r.get('/', authorize('HR'), c.all);
+r.patch('/:id/correct', authorize('HR'), [body('reason').trim().notEmpty().withMessage('A reason is required')], validate, c.correct);
+module.exports = r;

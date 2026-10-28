@@ -1,0 +1,14 @@
+const r = require('express').Router();
+const { body } = require('express-validator');
+const c = require('../controllers/leaveController');
+const validate = require('../middleware/validate');
+const { authenticate, authorize } = require('../middleware/auth');
+r.use(authenticate);
+r.post('/', authorize('EMPLOYEE', 'MANAGER'), [body('leaveType').isIn(['Casual', 'Sick', 'Earned', 'Unpaid']), body('startDate').isISO8601(), body('endDate').isISO8601(), body('reason').trim().notEmpty().isLength({ max: 500 })], validate, c.create);
+r.get('/me', c.me);
+r.get('/team', authorize('MANAGER'), c.team);
+r.get('/', authorize('HR'), c.all);
+r.get('/:id', c.get);
+r.patch('/:id/review', authorize('HR', 'MANAGER'), [body('decision').isIn(['Approved', 'Rejected'])], validate, c.review);
+r.patch('/:id/cancel', c.cancel);
+module.exports = r;
